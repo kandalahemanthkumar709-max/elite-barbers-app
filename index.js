@@ -71,8 +71,13 @@ const path = require('path');
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
-    app.get('(.*)', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
+    // Catch-all middleware to serve React for any non-API routes
+    app.use((req, res, next) => {
+        if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+            res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
+        } else {
+            next();
+        }
     });
 } else {
     app.get('/', (req, res) => {
