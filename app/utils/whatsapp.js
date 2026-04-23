@@ -39,7 +39,7 @@ const initializeWhatsApp = async () => {
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect, qr } = update;
         
-        if (qr) {
+        if (qr && connection !== 'open' && status !== 'READY') {
             lastQR = qr;
             status = 'WAITING_FOR_SCAN';
             console.log("✨ NEW LIGHTWEIGHT QR GENERATED!");
