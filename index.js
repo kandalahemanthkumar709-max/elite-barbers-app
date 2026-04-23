@@ -96,7 +96,7 @@ if (process.env.NODE_ENV === 'production') {
     const distPath = path.join(__dirname, 'frontend/dist');
     app.use(express.static(distPath));
 
-    app.get('(.*)', (req, res, next) => {
+    app.use((req, res, next) => {
         if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/qr')) {
             return next();
         }
