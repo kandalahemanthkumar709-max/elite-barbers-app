@@ -1,4 +1,6 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, RemoteAuth } = require('whatsapp-web.js');
+const { MongoStore } = require('wwebjs-mongo');
+const mongoose = require('mongoose');
 const qrcode = require('qrcode-terminal');
 
 let whatsappClient = null;
@@ -6,11 +8,15 @@ let isReady = false;
 let lastQR = null;
 
 const initializeWhatsApp = () => {
-    console.log("Initializing WhatsApp Web Client...");
+    console.log("Initializing WhatsApp Web Client with Persistent Session...");
 
-    // Setup LocalAuth to save session state so we don't scan QR every time server restarts
+    const store = new MongoStore({ mongoose: mongoose });
+
     whatsappClient = new Client({
-        authStrategy: new LocalAuth(),
+        authStrategy: new RemoteAuth({
+            store: store,
+            backupSyncIntervalMs: 300000 // Backup every 5 minutes
+        }),
         authTimeoutMs: 60000,
         puppeteer: {
             headless: true,
@@ -29,6 +35,7 @@ const initializeWhatsApp = () => {
     });
 
     whatsappClient.on('qr', (qr) => {
+
         lastQR = qr;
         console.log('\n==================================================');
         console.log('📱 SCAN THIS QR CODE WITH YOUR WHATSAPP DIRECTLY!');
@@ -47,6 +54,10 @@ const initializeWhatsApp = () => {
     whatsappClient.on('ready', () => {
         isReady = true;
         console.log('🚀 WHATSAPP IS READY! Background notification bot running.');
+    });
+
+    whatsappClient.on('remote_session_saved', () => {
+        console.log('💾 WhatsApp session successfully saved to MongoDB Atlas!');
     });
 
     whatsappClient.on('disconnected', (reason) => {
