@@ -13,8 +13,8 @@ cd ..
 echo "Installing backend dependencies..."
 npm install
 
-# Install Chrome for Puppeteer (specific for Render)
-if [[ ! -d $PUPPETEER_CACHE_DIR ]]; then
-  echo "Installing Chrome..."
-  npx puppeteer browsers install chrome
-fi
+# Install Chrome for Puppeteer
+echo "Installing Chrome..."
+export PUPPETEER_CACHE_DIR=/opt/render/project/src/.cache/puppeteer
+npx puppeteer browsers install chrome
+
