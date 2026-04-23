@@ -16,7 +16,7 @@ const initializeWhatsApp = () => {
         authStrategy: new RemoteAuth({
             clientId: 'elite-barbers-main',
             store: store,
-            backupSyncIntervalMs: 300000 // Backup every 5 minutes
+            backupSyncIntervalMs: 30000 // Backup every 30 seconds for stability
         }),
         authTimeoutMs: 60000,
         puppeteer: {
