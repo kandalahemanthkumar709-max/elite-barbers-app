@@ -16,10 +16,8 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
 
-// Configure Database and then initialize WhatsApp
+// Configure Database
 configureDB().then(() => {
-    initializeWhatsApp();
-    
     // Initialize Background Job Scheduler
     const { initializeCronJobs } = require('./app/utils/cron-jobs');
     initializeCronJobs();
@@ -129,4 +127,8 @@ if (process.env.NODE_ENV === 'production') {
 
 app.listen(port, () => {
     console.log(`Elite Barbers server is running on port ${port}`);
+    // Start WhatsApp in the background AFTER the port is bound
+    setTimeout(() => {
+        initializeWhatsApp();
+    }, 5000); // 5-second delay to ensure server stability
 });

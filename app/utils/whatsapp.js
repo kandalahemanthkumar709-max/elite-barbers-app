@@ -1,124 +1,89 @@
-const { Client, RemoteAuth } = require('whatsapp-web.js');
-const { MongoStore } = require('wwebjs-mongo');
-const mongoose = require('mongoose');
-const qrcode = require('qrcode-terminal');
+const { 
+    default: makeWASocket, 
+    useMultiFileAuthState, 
+    DisconnectReason,
+    fetchLatestBaileysVersion,
+    makeCacheableSignalKeyStore
+} = require('@whiskeysockets/baileys');
+const pino = require('pino');
+const path = require('path');
+const fs = require('fs');
 
-let whatsappClient = null;
-let isReady = false;
+let sock;
 let lastQR = null;
 let status = 'INITIALIZING';
 
+const getLatestQR = () => lastQR;
 const getStatus = () => status;
+const isReady = () => status === 'READY';
 
-const initializeWhatsApp = () => {
-    console.log("🚀 STARTING WHATSAPP SURVIVOR MODE...");
+const initializeWhatsApp = async () => {
+    console.log("🚀 STARTING LIGHTWEIGHT WHATSAPP (BAILEYS)...");
+    
+    const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '../../auth_info_baileys'));
+    const { version } = await fetchLatestBaileysVersion();
 
-    const store = new MongoStore({ mongoose: mongoose });
-
-    whatsappClient = new Client({
-        authStrategy: new RemoteAuth({
-            clientId: 'elite-barbers-main',
-            store: store,
-            backupSyncIntervalMs: 60000 
-        }),
-        authTimeoutMs: 0, 
-        webVersionCache: {
-            type: 'remote',
-            remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+    sock = makeWASocket({
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
         },
-        puppeteer: {
-            headless: true,
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-            args: [
-                '--no-sandbox', 
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu',
-                '--disable-extensions',
-                '--disable-background-networking',
-                '--disable-default-apps',
-                '--disable-sync',
-                '--disable-translate',
-                '--hide-scrollbars',
-                '--metrics-recording-only',
-                '--mute-audio',
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--js-flags="--max-old-space-size=256"',
-                '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
-            ],
-            ignoreHTTPSErrors: true,
-            timeout: 0
+        printQRInTerminal: true,
+        version,
+        logger: pino({ level: 'silent' }),
+        browser: ["Elite Barbers", "Chrome", "1.0.0"],
+    });
+
+    sock.ev.on('creds.update', saveCreds);
+
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect, qr } = update;
+        
+        if (qr) {
+            lastQR = qr;
+            status = 'WAITING_FOR_SCAN';
+            console.log("✨ NEW LIGHTWEIGHT QR GENERATED!");
         }
-    });
 
-    whatsappClient.on('qr', (qr) => {
-        console.log("✨ QR CODE GENERATED!");
-        lastQR = qr;
-        status = 'WAITING_FOR_SCAN';
-        qrcode.generate(qr, { small: true });
-    });
-
-    whatsappClient.on('authenticated', () => {
-        console.log('✅ WhatsApp successfully authenticated!');
-        status = 'AUTHENTICATED';
-    });
-
-    whatsappClient.on('auth_failure', msg => {
-        console.error('❌ WhatsApp authentication failed:', msg);
-        status = 'AUTH_FAILURE';
-    });
-
-    whatsappClient.on('ready', () => {
-        isReady = true;
-        status = 'READY';
-        lastQR = null;
-        console.log('🚀 WHATSAPP IS READY!');
-    });
-
-    whatsappClient.on('remote_session_saved', () => {
-        console.log('💾 WhatsApp session successfully saved to MongoDB Atlas!');
-    });
-
-    whatsappClient.on('disconnected', (reason) => {
-        console.log('❌ WhatsApp client disconnected:', reason);
-        isReady = false;
-    });
-
-    console.log("🌐 Calling initialize()...");
-    whatsappClient.initialize().catch(err => {
-        console.error("❌ INITIALIZATION ERROR:", err.message);
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut);
+            console.log('🔴 Connection closed. Reason: ', lastDisconnect.error, ', Reconnecting: ', shouldReconnect);
+            status = 'DISCONNECTED';
+            if (shouldReconnect) {
+                initializeWhatsApp();
+            }
+        } else if (connection === 'open') {
+            console.log('🟢 LIGHTWEIGHT WHATSAPP IS READY!');
+            status = 'READY';
+            lastQR = null;
+        }
     });
 };
 
-const sendWhatsAppMessage = async (toPhone, messageParams) => {
-    if (!whatsappClient || !isReady) return false;
-
-    const { customerName, serviceName, barberName, bookingDate, price } = messageParams;
-    const dateObj = new Date(bookingDate);
-    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    let textBody = `*Booking Confirmed ✂️*\n\nHi ${customerName}! Your appointment for ${serviceName} with ${barberName} at ${timeStr} is confirmed.\n\nTotal: ₹${price}\n\nSee you soon!`;
+const sendWhatsAppMessage = async (number, data) => {
+    if (status !== 'READY' || !sock) {
+        console.log('❌ Cannot send message: WhatsApp not ready');
+        return;
+    }
 
     try {
-        let parsedNumber = toPhone.toString().replace(/\D/g, ''); 
-        if (parsedNumber.length === 10) parsedNumber = `91${parsedNumber}`;
-        const chatId = `${parsedNumber}@c.us`;
+        // Format number: remove + and add @s.whatsapp.net
+        const formattedNumber = number.replace(/\D/g, '') + '@s.whatsapp.net';
+        
+        const message = `*ELITE BARBERS - BOOKING CONFIRMED* ✂️\n\n` +
+            `Hello *${data.customerName}*,\n` +
+            `Your appointment is confirmed!\n\n` +
+            `🔹 *Service:* ${data.serviceName}\n` +
+            `🔹 *Barber:* ${data.barberName}\n` +
+            `🔹 *Date:* ${new Date(data.bookingDate).toLocaleDateString()}\n` +
+            `🔹 *Price:* ₹${data.price}\n\n` +
+            `See you soon at the shop! 💈`;
 
-        await whatsappClient.sendMessage(chatId, textBody);
-        console.log(`✅ Message sent to ${chatId}`);
-        return true;
+        await sock.sendMessage(formattedNumber, { text: message });
+        console.log(`✅ WhatsApp sent to ${number}`);
     } catch (err) {
-        console.error("❌ Send error:", err.message);
-        return false;
+        console.error('❌ Error sending WhatsApp:', err);
     }
 };
 
-module.exports = {
-    initializeWhatsApp,
-    sendWhatsAppMessage,
-    getLatestQR: () => lastQR
-};
+module.exports = { initializeWhatsApp, sendWhatsAppMessage, getLatestQR, getStatus, isReady };
