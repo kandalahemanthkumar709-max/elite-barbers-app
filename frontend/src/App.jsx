@@ -23,26 +23,7 @@ function App() {
         <Header />
         <main>
           <Routes>
-            <Route path="/" element={
-              <div className="container" style={{ textAlign: 'center', marginTop: '10rem' }}>
-                <h1 style={{ fontSize: '4rem', marginBottom: '1rem' }}>SHARP LINES.<br/>ELITE SERVICE.</h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', marginBottom: '2rem' }}>
-                  The premier barber booking experience.
-                </p>
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button className="btn-primary" style={{ padding: '1rem 2.5rem' }}>BOOK NOW</button>
-                  <button style={{ 
-                    background: 'transparent', 
-                    border: '1px solid var(--border)', 
-                    color: 'white',
-                    padding: '1rem 2.5rem',
-                    borderRadius: '4px'
-                  }}>
-                    BROWSE SERVICES
-                  </button>
-                </div>
-              </div>
-            } />
+            <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/services" element={<Services />} />
@@ -59,7 +40,7 @@ function App() {
             <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['admin']}><AdminServices /></ProtectedRoute>} />
             <Route path="/admin/barbers" element={<ProtectedRoute allowedRoles={['admin']}><AdminBarbers /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin']}><AdminSettings /></ProtectedRoute>} />
-            
+
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <div className="container">

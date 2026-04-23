@@ -65,9 +65,19 @@ app.post('/api/payments/verify', authenticateUser, paymentsCtrl.verifyPayment);
 app.get('/api/settings', settingsCtrl.getSettings);
 app.put('/api/settings', authenticateUser, authorizeUser(['admin']), settingsCtrl.updateSettings);
 
-app.get('/', (req, res) => {
-    res.json({ message: "Welcome to Elite Barbers API" });
-});
+const path = require('path');
+// Serve Frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'frontend/dist')));
+
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
+    });
+} else {
+    app.get('/', (req, res) => {
+        res.json({ message: "Welcome to Elite Barbers API" });
+    });
+}
 
 app.listen(port, () => {
     console.log(`Elite Barbers server is running on port ${port}`);

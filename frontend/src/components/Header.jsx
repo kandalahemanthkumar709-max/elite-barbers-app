@@ -42,7 +42,7 @@ const Header = () => {
                             <Link to="/services" style={navLink}>Services</Link>
                             <Link to="/about" style={navLink}>About</Link>
                             <Link to="/contact" style={navLink}>Contact</Link>
-                            <Link to="/login" style={navLink}>Login</Link>
+                            <Link to="/" style={navLink}>Login</Link>
                             <Link to="/register" className="btn-primary" style={{ textDecoration: 'none' }}>Join</Link>
                         </>
                     )}
