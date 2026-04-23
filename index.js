@@ -1,25 +1,35 @@
-// v1.0.1 - Monolith Fix
+// v1.0.2 - Monolith & Scoping Fix
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 const configureDB = require('./config/db');
+const { initializeWhatsApp, getLatestQR } = require('./app/utils/whatsapp');
+const QRCode = require('qrcode');
 
 const app = express();
 const port = process.env.PORT || 3099;
 
-// Configure Database
-configureDB();
+// Middlewares
+app.use(express.json());
+app.use(cors());
+app.use(morgan('dev'));
 
-// Initialize WhatsApp Web Client
-const { initializeWhatsApp, getLatestQR } = require('./app/utils/whatsapp');
-initializeWhatsApp();
-
-const QRCode = require('qrcode');
+// Configure Database and then initialize WhatsApp
+configureDB().then(() => {
+    initializeWhatsApp();
+    
+    // Initialize Background Job Scheduler
+    const { initializeCronJobs } = require('./app/utils/cron-jobs');
+    initializeCronJobs();
+}).catch(err => {
+    console.error("CRITICAL: Failed to connect to DB during startup", err);
+});
 
 // QR Code Route
 app.get('/qr', async (req, res) => {
-    const qr = getLatestQR();
+    const qr = getLatestQR ? getLatestQR() : null;
     if (!qr) {
         return res.send("<h1>QR code not available!</h1><p>The client may already be authenticated or is still initializing. Check logs.</p>");
     }
@@ -38,15 +48,6 @@ app.get('/qr', async (req, res) => {
         res.status(500).send("Error generating QR image");
     }
 });
-
-// Initialize Background Job Scheduler
-const { initializeCronJobs } = require('./app/utils/cron-jobs');
-initializeCronJobs();
-
-// Middlewares
-app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
 
 const usersCtrl = require('./app/controllers/user-controller');
 const authenticateUser = require('./app/middlewares/user-autentication');
@@ -90,18 +91,16 @@ app.post('/api/payments/verify', authenticateUser, paymentsCtrl.verifyPayment);
 app.get('/api/settings', settingsCtrl.getSettings);
 app.put('/api/settings', authenticateUser, authorizeUser(['admin']), settingsCtrl.updateSettings);
 
-const path = require('path');
 // Serve Frontend static files in production
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'frontend/dist')));
+    const distPath = path.join(__dirname, 'frontend/dist');
+    app.use(express.static(distPath));
 
-    // Catch-all middleware to serve React for any non-API routes
-    app.use((req, res, next) => {
-        if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
-            res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
-        } else {
-            next();
+    app.get('(.*)', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/qr')) {
+            return next();
         }
+        res.sendFile(path.join(distPath, 'index.html'));
     });
 } else {
     app.get('/', (req, res) => {
