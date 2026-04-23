@@ -19,7 +19,7 @@ const initializeWhatsApp = () => {
             store: store,
             backupSyncIntervalMs: 60000 
         }),
-        authTimeoutMs: 0,
+        authTimeoutMs: 300000, // 5 minutes timeout
         webVersionCache: {
             type: 'remote',
             remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
