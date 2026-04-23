@@ -3,6 +3,7 @@ const qrcode = require('qrcode-terminal');
 
 let whatsappClient = null;
 let isReady = false;
+let lastQR = null;
 
 const initializeWhatsApp = () => {
     console.log("Initializing WhatsApp Web Client...");
@@ -28,6 +29,7 @@ const initializeWhatsApp = () => {
     });
 
     whatsappClient.on('qr', (qr) => {
+        lastQR = qr;
         console.log('\n==================================================');
         console.log('📱 SCAN THIS QR CODE WITH YOUR WHATSAPP DIRECTLY!');
         console.log('==================================================\n');
@@ -50,7 +52,6 @@ const initializeWhatsApp = () => {
     whatsappClient.on('disconnected', (reason) => {
         console.log('❌ WhatsApp client disconnected:', reason);
         isReady = false;
-        // Optionally try to restart client here if needed
     });
 
     whatsappClient.initialize();
@@ -95,15 +96,10 @@ See you soon!`;
     }
 
     try {
-        // WhatsApp internally maps numbers to string identifiers ending in @c.us for regular users
-        // It's extremely important we strictly enforce numbers without spaces or plus signs.
         let parsedNumber = toPhone.toString().replace(/\D/g, ''); 
-        
-        // Let's assume standard Indian code if length is 10 digits
         if (parsedNumber.length === 10) {
             parsedNumber = `91${parsedNumber}`;
         }
-        
         const chatId = `${parsedNumber}@c.us`;
 
         console.log(`Sending WhatsApp dynamically to ${chatId}...`);
@@ -118,5 +114,6 @@ See you soon!`;
 
 module.exports = {
     initializeWhatsApp,
-    sendWhatsAppMessage
+    sendWhatsAppMessage,
+    getLatestQR: () => lastQR
 };

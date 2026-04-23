@@ -13,7 +13,7 @@ bookingsCtrl.create = async (req, res) => {
 
     try {
         const { barberId, serviceId, bookingDate, paymentMethod } = req.body;
-        
+
         // Check if the barber is already booked at this time
         const existingBarberBooking = await Booking.findOne({ barberId, bookingDate });
         if (existingBarberBooking) {
@@ -41,7 +41,7 @@ bookingsCtrl.create = async (req, res) => {
             bookingDate,
             paymentMethod
         });
-        
+
         await booking.save();
 
         if (paymentMethod === 'cash') {
@@ -49,8 +49,8 @@ bookingsCtrl.create = async (req, res) => {
             const customer = await User.findById(req.user.id);
             const barber = await User.findById(barberId);
             const { sendWhatsAppMessage } = require('../utils/whatsapp');
-            
-            // Fire and forget the notification (don't await) so we don't block the API response
+
+            // Fire and forget the notChange it from Node to Docker.Change it from Node to Docker.ification (don't await) so we don't block the API response
             if (customer?.phoneNumber) {
                 sendWhatsAppMessage(customer.phoneNumber, {
                     customerName: customer.username,
@@ -115,14 +115,14 @@ bookingsCtrl.checkAvailability = async (req, res) => {
             // If the server and client are in different timezones, getHours() will differ
             // To be safe, we should use the hours from the actual stored value relative to the start of the day
             const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-            
+
             if (!availabilityMap[time]) availabilityMap[time] = [];
             availabilityMap[time].push(b.barberId.toString());
         });
 
-        res.json({ 
+        res.json({
             totalSeats: barberId ? 1 : totalBarbers,
-            availability: availabilityMap 
+            availability: availabilityMap
         });
     } catch (err) {
         console.log(err);
@@ -134,7 +134,7 @@ bookingsCtrl.cancel = async (req, res) => {
     try {
         const { id } = req.params;
         let booking;
-        
+
         if (req.user.role === 'admin') {
             booking = await Booking.findById(id);
         } else {
@@ -151,7 +151,7 @@ bookingsCtrl.cancel = async (req, res) => {
 
         booking.status = 'cancelled';
         await booking.save();
-        
+
         res.json(booking);
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
@@ -162,15 +162,15 @@ bookingsCtrl.updateStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        
+
         const booking = await Booking.findByIdAndUpdate(id, { status }, { new: true })
             .populate('customerId barberId', 'username email phoneNumber')
             .populate('serviceId', 'name');
-            
+
         if (!booking) {
             return res.status(404).json({ error: 'Booking not found' });
         }
-        
+
         res.json(booking);
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });

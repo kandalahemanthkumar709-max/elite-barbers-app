@@ -12,8 +12,32 @@ const port = process.env.PORT || 3099;
 configureDB();
 
 // Initialize WhatsApp Web Client
-const { initializeWhatsApp } = require('./app/utils/whatsapp');
+const { initializeWhatsApp, getLatestQR } = require('./app/utils/whatsapp');
 initializeWhatsApp();
+
+const QRCode = require('qrcode');
+
+// QR Code Route
+app.get('/qr', async (req, res) => {
+    const qr = getLatestQR();
+    if (!qr) {
+        return res.send("<h1>QR code not available!</h1><p>The client may already be authenticated or is still initializing. Check logs.</p>");
+    }
+    
+    try {
+        const qrImage = await QRCode.toDataURL(qr);
+        res.send(`
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+                <h1>Scan this for Elite Barbers WhatsApp</h1>
+                <img src="${qrImage}" style="width: 300px; height: 300px; border: 10px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+                <p>Open WhatsApp > Linked Devices > Link a Device</p>
+                <script>setTimeout(() => location.reload(), 30000);</script>
+            </div>
+        `);
+    } catch (err) {
+        res.status(500).send("Error generating QR image");
+    }
+});
 
 // Initialize Background Job Scheduler
 const { initializeCronJobs } = require('./app/utils/cron-jobs');
