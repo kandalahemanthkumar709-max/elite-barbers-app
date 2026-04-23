@@ -12,14 +12,14 @@ const initializeWhatsApp = () => {
 
     const store = new MongoStore({ mongoose: mongoose });
 
-    console.log("📦 Creating WhatsApp Client with RemoteAuth...");
+    console.log("📦 Creating WhatsApp Client with High-Stability Settings...");
     whatsappClient = new Client({
         authStrategy: new RemoteAuth({
             clientId: 'elite-barbers-main',
             store: store,
             backupSyncIntervalMs: 60000 
         }),
-        authTimeoutMs: 300000, // 5 minutes timeout
+        authTimeoutMs: 0, 
         webVersionCache: {
             type: 'remote',
             remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
@@ -33,7 +33,8 @@ const initializeWhatsApp = () => {
                 '--disable-dev-shm-usage',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
             ],
             timeout: 60000
         }
@@ -42,9 +43,6 @@ const initializeWhatsApp = () => {
     whatsappClient.on('qr', (qr) => {
         console.log("✨ QR CODE GENERATED!");
         lastQR = qr;
-        console.log('\n==================================================');
-        console.log('📱 SCAN THIS QR CODE WITH YOUR WHATSAPP DIRECTLY!');
-        console.log('==================================================\n');
         qrcode.generate(qr, { small: true });
     });
 
@@ -88,45 +86,18 @@ const sendWhatsAppMessage = async (toPhone, messageParams) => {
     const dateStr = dateObj.toLocaleDateString();
     const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    let textBody = '';
-    if (isReminder) {
-        textBody = `*Reminder: Appointment in 10 Minutes! ⏰*
-
-Hi ${customerName}, just a friendly heads-up that your appointment is starting very soon.
-
-*Service:* ${serviceName} with ${barberName}
-*Time:* ${timeStr}
-
-📍 *Location:* Elite Barbershop, 123 Main Street, City Center.
-Please make your way over. See you soon!`;
-    } else {
-        textBody = `*Booking Confirmed ✂️*
-
-Hi ${customerName}! Your elite grooming session is booked.
-
-*Service:* ${serviceName} with ${barberName}
-*Date:* ${dateStr}
-*Time:* ${timeStr}
-*Total:* ₹${price}
-
-📍 *Location:* Elite Barbershop, 123 Main Street, City Center.
-
-See you soon!`;
-    }
+    let textBody = `*Booking Confirmed ✂️*\n\nHi ${customerName}! Your appointment is set.\n\n*Service:* ${serviceName}\n*Time:* ${timeStr}\n\nSee you soon!`;
 
     try {
         let parsedNumber = toPhone.toString().replace(/\D/g, ''); 
-        if (parsedNumber.length === 10) {
-            parsedNumber = `91${parsedNumber}`;
-        }
+        if (parsedNumber.length === 10) parsedNumber = `91${parsedNumber}`;
         const chatId = `${parsedNumber}@c.us`;
 
-        console.log(`Sending WhatsApp dynamically to ${chatId}...`);
         await whatsappClient.sendMessage(chatId, textBody);
-        console.log(`✅ Message successfully sent via headless WhatsApp!`);
+        console.log(`✅ Message successfully sent to ${chatId}`);
         return true;
     } catch (err) {
-        console.error("❌ Failed to send dynamic WhatsApp message:", err.message);
+        console.error("❌ Failed to send WhatsApp:", err.message);
         return false;
     }
 };

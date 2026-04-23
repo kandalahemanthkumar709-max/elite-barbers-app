@@ -36,11 +36,16 @@ app.get('/qr', async (req, res) => {
     
     try {
         const qrImage = await QRCode.toDataURL(qr);
+        const serverType = process.env.SERVER_TYPE || (process.env.NODE_ENV === 'production' ? '🚀 LIVE SERVER (RENDER)' : '💻 LOCAL MACHINE');
         res.send(`
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
-                <h1>Scan this for Elite Barbers WhatsApp</h1>
-                <img src="${qrImage}" style="width: 300px; height: 300px; border: 10px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
-                <p>Open WhatsApp > Linked Devices > Link a Device</p>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; background: #f0f2f5;">
+                <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;">
+                    <h2 style="color: #128c7e;">${serverType}</h2>
+                    <h1 style="margin-bottom: 20px;">Scan for Elite Barbers</h1>
+                    <img src="${qrImage}" style="width: 300px; height: 300px; border: 1px solid #ddd;" />
+                    <p style="margin-top: 20px; color: #666;">Open WhatsApp > Linked Devices > Link a Device</p>
+                    <p style="font-size: 12px; color: #999;">Refreshing every 30s...</p>
+                </div>
                 <script>setTimeout(() => location.reload(), 30000);</script>
             </div>
         `);
