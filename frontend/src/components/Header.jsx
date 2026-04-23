@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../slices/authSlice';
+import { clearBookings } from '../slices/bookingsSlice';
 import { Scissors, User } from 'lucide-react';
 
 // Safely decode the JWT role without crashing if token is malformed
@@ -23,7 +24,8 @@ const Header = () => {
 
     const handleLogout = () => {
         dispatch(logout());
-        navigate('/login');
+        dispatch(clearBookings());
+        navigate('/');
     };
 
     return (
