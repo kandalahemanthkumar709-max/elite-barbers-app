@@ -8,17 +8,18 @@ let isReady = false;
 let lastQR = null;
 
 const initializeWhatsApp = () => {
-    console.log("Initializing WhatsApp Web Client with Persistent Session...");
+    console.log("🚀 STARTING WHATSAPP INITIALIZATION...");
 
     const store = new MongoStore({ mongoose: mongoose });
 
+    console.log("📦 Creating WhatsApp Client with RemoteAuth...");
     whatsappClient = new Client({
         authStrategy: new RemoteAuth({
             clientId: 'elite-barbers-main',
             store: store,
-            backupSyncIntervalMs: 30000 // Backup every 30 seconds for stability
+            backupSyncIntervalMs: 30000 
         }),
-        authTimeoutMs: 60000,
+        authTimeoutMs: 0,
         puppeteer: {
             headless: true,
             executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -26,7 +27,6 @@ const initializeWhatsApp = () => {
                 '--no-sandbox', 
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
                 '--disable-gpu'
@@ -36,7 +36,7 @@ const initializeWhatsApp = () => {
     });
 
     whatsappClient.on('qr', (qr) => {
-
+        console.log("✨ QR CODE GENERATED!");
         lastQR = qr;
         console.log('\n==================================================');
         console.log('📱 SCAN THIS QR CODE WITH YOUR WHATSAPP DIRECTLY!');
@@ -66,7 +66,10 @@ const initializeWhatsApp = () => {
         isReady = false;
     });
 
-    whatsappClient.initialize();
+    console.log("🌐 Calling whatsappClient.initialize()...");
+    whatsappClient.initialize().catch(err => {
+        console.error("❌ FAILED TO INITIALIZE WHATSAPP:", err);
+    });
 };
 
 const sendWhatsAppMessage = async (toPhone, messageParams) => {
