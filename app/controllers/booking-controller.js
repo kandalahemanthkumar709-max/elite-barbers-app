@@ -14,24 +14,28 @@ bookingsCtrl.create = async (req, res) => {
     try {
         const { barberId, serviceId, bookingDate, paymentMethod } = req.body;
 
-        // Check if the barber is already booked at this time (only block if confirmed or completed)
+        // Check if the barber is already booked (only block if confirmed/completed)
         const existingBarberBooking = await Booking.findOne({ 
             barberId, 
             bookingDate, 
             status: { $in: ['confirmed', 'completed'] } 
         });
         if (existingBarberBooking) {
-            return res.status(400).json({ error: 'This barber is already booked for this time slot.' });
+            return res.status(400).json({ error: 'This barber is already booked for this specific time.' });
         }
 
-        // Check if the customer is already booked at this time (only block if confirmed or completed)
+        // Check if the customer has a confirmed slot
         const existingCustomerBooking = await Booking.findOne({ 
             customerId: req.user.id, 
             bookingDate,
             status: { $in: ['confirmed', 'completed'] }
         });
+
         if (existingCustomerBooking) {
-            return res.status(400).json({ error: 'You already have an appointment at this time.' });
+            const time = new Date(existingCustomerBooking.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return res.status(400).json({ 
+                error: `You already have a CONFIRMED appointment at ${time}. Please check your 'My Bookings' page.` 
+            });
         }
 
         // Fetch service details
