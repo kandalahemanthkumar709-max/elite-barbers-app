@@ -14,14 +14,22 @@ bookingsCtrl.create = async (req, res) => {
     try {
         const { barberId, serviceId, bookingDate, paymentMethod } = req.body;
 
-        // Check if the barber is already booked at this time
-        const existingBarberBooking = await Booking.findOne({ barberId, bookingDate });
+        // Check if the barber is already booked at this time (ignore cancelled)
+        const existingBarberBooking = await Booking.findOne({ 
+            barberId, 
+            bookingDate, 
+            status: { $ne: 'cancelled' } 
+        });
         if (existingBarberBooking) {
             return res.status(400).json({ error: 'This barber is already booked for this time slot.' });
         }
 
-        // Check if the customer is already booked at this time (optional but recommended)
-        const existingCustomerBooking = await Booking.findOne({ customerId: req.user.id, bookingDate });
+        // Check if the customer is already booked at this time (ignore cancelled)
+        const existingCustomerBooking = await Booking.findOne({ 
+            customerId: req.user.id, 
+            bookingDate,
+            status: { $ne: 'cancelled' }
+        });
         if (existingCustomerBooking) {
             return res.status(400).json({ error: 'You already have an appointment at this time.' });
         }
