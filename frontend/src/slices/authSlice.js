@@ -7,6 +7,7 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await axios.post('/api/users/login', credentials);
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user)); // Save user details
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -20,6 +21,7 @@ export const registerUser = createAsyncThunk(
     try {
       const response = await axios.post('/api/users/register', userData);
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user)); // Save user details
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -30,7 +32,7 @@ export const registerUser = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
     loading: false,
     error: null,
@@ -40,6 +42,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       localStorage.removeItem('token');
+      localStorage.removeItem('user'); // Clear user details
     },
     setUser: (state, action) => {
       state.user = action.payload;

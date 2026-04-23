@@ -57,6 +57,7 @@ paymentsCtrl.verifyPayment = async (req, res) => {
         if (expectedSignature === razorpay_signature) {
             // Update booking status
             const updatedBooking = await Booking.findByIdAndUpdate(bookingId, {
+                status: 'confirmed',
                 paymentStatus: 'paid',
                 paymentId: razorpay_payment_id
             }, { new: true }).populate('customerId barberId').populate('serviceId');

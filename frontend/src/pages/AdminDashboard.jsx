@@ -144,10 +144,20 @@ const BookingRow = ({ booking, onUpdateStatus }) => {
             <td style={{ padding: '1.5rem' }}>
                 {isPending ? (
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button title="Complete" onClick={() => onUpdateStatus(booking._id, 'completed')} style={{ background: 'none', color: '#36b37e', padding: '0.5rem' }}>
+                        <button 
+                            type="button"
+                            title="Complete" 
+                            onClick={(e) => { e.preventDefault(); onUpdateStatus(booking._id, 'completed'); }} 
+                            style={{ background: 'none', color: '#36b37e', padding: '0.5rem', cursor: 'pointer' }}
+                        >
                             <CheckCircle size={20} />
                         </button>
-                        <button title="Cancel" onClick={() => onUpdateStatus(booking._id, 'cancelled')} style={{ background: 'none', color: '#ff5630', padding: '0.5rem' }}>
+                        <button 
+                            type="button"
+                            title="Cancel" 
+                            onClick={(e) => { e.preventDefault(); onUpdateStatus(booking._id, 'cancelled'); }} 
+                            style={{ background: 'none', color: '#ff5630', padding: '0.5rem', cursor: 'pointer' }}
+                        >
                             <XCircle size={20} />
                         </button>
                     </div>

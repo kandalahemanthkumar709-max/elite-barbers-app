@@ -14,21 +14,21 @@ bookingsCtrl.create = async (req, res) => {
     try {
         const { barberId, serviceId, bookingDate, paymentMethod } = req.body;
 
-        // Check if the barber is already booked at this time (ignore cancelled)
+        // Check if the barber is already booked at this time (only block if confirmed or completed)
         const existingBarberBooking = await Booking.findOne({ 
             barberId, 
             bookingDate, 
-            status: { $ne: 'cancelled' } 
+            status: { $in: ['confirmed', 'completed'] } 
         });
         if (existingBarberBooking) {
             return res.status(400).json({ error: 'This barber is already booked for this time slot.' });
         }
 
-        // Check if the customer is already booked at this time (ignore cancelled)
+        // Check if the customer is already booked at this time (only block if confirmed or completed)
         const existingCustomerBooking = await Booking.findOne({ 
             customerId: req.user.id, 
             bookingDate,
-            status: { $ne: 'cancelled' }
+            status: { $in: ['confirmed', 'completed'] }
         });
         if (existingCustomerBooking) {
             return res.status(400).json({ error: 'You already have an appointment at this time.' });
@@ -47,7 +47,8 @@ bookingsCtrl.create = async (req, res) => {
             totalPrice: service.price,
             duration: service.duration,
             bookingDate,
-            paymentMethod
+            paymentMethod,
+            status: paymentMethod === 'cash' ? 'confirmed' : 'pending'
         });
 
         await booking.save();
@@ -119,10 +120,10 @@ bookingsCtrl.checkAvailability = async (req, res) => {
         const availabilityMap = {};
         bookings.forEach(b => {
             const d = new Date(b.bookingDate);
-            // We use the same formatting as the frontend expects
-            // If the server and client are in different timezones, getHours() will differ
-            // To be safe, we should use the hours from the actual stored value relative to the start of the day
-            const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+            // Timezone-safe time extraction
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            const time = `${hours}:${minutes}`;
 
             if (!availabilityMap[time]) availabilityMap[time] = [];
             availabilityMap[time].push(b.barberId.toString());

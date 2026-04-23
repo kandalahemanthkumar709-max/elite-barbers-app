@@ -94,14 +94,15 @@ const ConfirmBooking = () => {
         setError(null);
 
         try {
-            // Combine date and time
-            const fullDate = new Date(`${bookingDate}T${bookingTime}:00`);
+            // Use 'YYYY-MM-DDTHH:mm:00' format which is safer for ISO parsing
+            const timeStr = bookingTime + ':00';
+            const fullDateString = `${bookingDate}T${timeStr}`;
             
             // Navigate to SelectBarber page
             navigate('/barbers', { 
                 state: { 
                     service, 
-                    bookingDate: fullDate.toISOString(),
+                    bookingDate: fullDateString, // Pass as a raw string to prevent shift
                     bookedBarbers: availability.map[bookingTime] || [],
                     bookingTime
                 } 

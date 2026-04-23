@@ -68,8 +68,9 @@ const Payment = () => {
             const order = orderResponse.data;
 
             // 4. Open Razorpay Modal
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use key from environment
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
                 amount: order.amount,
                 currency: order.currency,
                 name: "Elite Barbers",
@@ -89,13 +90,16 @@ const Payment = () => {
                     }
                 },
                 prefill: {
-                    name: "Customer Name",
-                    email: "customer@example.com",
-                    contact: "9999999999"
+                    name: user.username || "Grooming Client",
+                    email: user.email || "",
+                    contact: user.phoneNumber || ""
                 },
-                theme: {
-                    color: "#C5A163"
-                }
+                modal: {
+                    ondismiss: function() {
+                        setLoading(false);
+                    }
+                },
+                theme: { color: "#C5A163" }
             };
 
             const rzp = new window.Razorpay(options);

@@ -12,15 +12,16 @@ usersCtrl.register = async (req, res) => {
     }
 
     try {
-        const { username, email, password, role, phoneNumber, bio, profileImage, specialties } = req.body;
+        const { username, email, password, phoneNumber, bio, profileImage, specialties } = req.body;
         const salt = await bcryptjs.genSalt();
         const hashedPassword = await bcryptjs.hash(password, salt);
         
+        // SECURITY: Always force role to 'customer' for public registration
         const user = new User({ 
             username, 
             email, 
             password: hashedPassword, 
-            role, 
+            role: 'customer', 
             phoneNumber, 
             bio, 
             profileImage, 
@@ -59,7 +60,17 @@ usersCtrl.login = async (req, res) => {
 
         const tokenData = { id: user._id, role: user.role };
         const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '7d' });
-        res.json({ token: `Bearer ${token}` });
+        
+        // Return user data (safely) alongside the token
+        const userResponse = {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role
+        };
+        
+        res.json({ token: `Bearer ${token}`, user: userResponse });
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
