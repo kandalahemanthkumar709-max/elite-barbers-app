@@ -5,7 +5,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const configureDB = require('./config/db');
-const { initializeWhatsApp, getLatestQR } = require('./app/utils/whatsapp');
+const { initializeWhatsApp, getLatestQR, getStatus } = require('./app/utils/whatsapp');
 const QRCode = require('qrcode');
 
 const app = express();
@@ -30,8 +30,22 @@ configureDB().then(() => {
 // QR Code Route
 app.get('/qr', async (req, res) => {
     const qr = getLatestQR ? getLatestQR() : null;
-    if (!qr) {
-        return res.send("<h1>QR code not available!</h1><p>The client may already be authenticated or is still initializing. Check logs.</p>");
+    const currentStatus = getStatus ? getStatus() : 'UNKNOWN';
+    
+    if (!qr && currentStatus !== 'WAITING_FOR_SCAN') {
+        const message = currentStatus === 'READY' || currentStatus === 'AUTHENTICATED' 
+            ? "✅ WHATSAPP IS ALREADY CONNECTED & READY!" 
+            : `⏳ STATUS: ${currentStatus}... Please wait.`;
+            
+        return res.send(`
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; background: #f0f2f5;">
+                <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;">
+                    <h1 style="color: #128c7e;">${message}</h1>
+                    <p style="margin-top: 20px; color: #666;">If you want to re-link, you must restart the server or logout from your phone.</p>
+                </div>
+                <script>setTimeout(() => location.reload(), 5000);</script>
+            </div>
+        `);
     }
     
     try {

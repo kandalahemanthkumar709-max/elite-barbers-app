@@ -6,6 +6,9 @@ const qrcode = require('qrcode-terminal');
 let whatsappClient = null;
 let isReady = false;
 let lastQR = null;
+let status = 'INITIALIZING';
+
+const getStatus = () => status;
 
 const initializeWhatsApp = () => {
     console.log("🚀 STARTING WHATSAPP SURVIVOR MODE...");
@@ -55,19 +58,24 @@ const initializeWhatsApp = () => {
     whatsappClient.on('qr', (qr) => {
         console.log("✨ QR CODE GENERATED!");
         lastQR = qr;
+        status = 'WAITING_FOR_SCAN';
         qrcode.generate(qr, { small: true });
     });
 
     whatsappClient.on('authenticated', () => {
         console.log('✅ WhatsApp successfully authenticated!');
+        status = 'AUTHENTICATED';
     });
 
     whatsappClient.on('auth_failure', msg => {
         console.error('❌ WhatsApp authentication failed:', msg);
+        status = 'AUTH_FAILURE';
     });
 
     whatsappClient.on('ready', () => {
         isReady = true;
+        status = 'READY';
+        lastQR = null;
         console.log('🚀 WHATSAPP IS READY!');
     });
 
