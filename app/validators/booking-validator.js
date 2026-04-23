@@ -5,7 +5,7 @@ const bookingCreateSchema = Joi.object({
     serviceId: Joi.string().hex().length(24).required(),
     bookingDate: Joi.date().iso().required(),
     paymentMethod: Joi.string().valid('online', 'cash').required()
-});
+}).unknown(true);
 
 module.exports = {
     bookingCreateSchema

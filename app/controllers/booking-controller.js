@@ -50,7 +50,7 @@ bookingsCtrl.create = async (req, res) => {
             const barber = await User.findById(barberId);
             const { sendWhatsAppMessage } = require('../utils/whatsapp');
 
-            // Fire and forget the notChange it from Node to Docker.Change it from Node to Docker.ification (don't await) so we don't block the API response
+            // Notify via WhatsApp (don't await to keep response fast)
             if (customer?.phoneNumber) {
                 sendWhatsAppMessage(customer.phoneNumber, {
                     customerName: customer.username,
