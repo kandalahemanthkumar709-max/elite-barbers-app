@@ -108,6 +108,11 @@ app.post('/api/payments/verify', authenticateUser, paymentsCtrl.verifyPayment);
 app.get('/api/settings', settingsCtrl.getSettings);
 app.put('/api/settings', authenticateUser, authorizeUser(['admin']), settingsCtrl.updateSettings);
 
+// Public config endpoint for Razorpay Key ID
+app.get('/api/config/razorpay-key', (req, res) => {
+    res.json({ keyId: process.env.RAZORPAY_KEY_ID });
+});
+
 // Serve Frontend static files in production
 if (process.env.NODE_ENV === 'production') {
     const distPath = path.join(__dirname, 'frontend/dist');

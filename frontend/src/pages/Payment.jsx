@@ -69,10 +69,18 @@ const Payment = () => {
 
             // 4. Open Razorpay Modal
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
             
+            // FETCH KEY FROM BACKEND (Bulletproof Method)
+            let razorpayKey;
+            try {
+                const keyRes = await axios.get('/api/config/razorpay-key');
+                razorpayKey = keyRes.data.keyId;
+            } catch (err) {
+                console.error("Key fetch failed:", err);
+            }
+
             if (!razorpayKey || razorpayKey === 'undefined') {
-                setError('Payment configuration is missing (VITE_RAZORPAY_KEY_ID). Please ensure you have Redeployed with Clear Cache.');
+                setError('Payment configuration is missing on the server. Please check your Render Environment variables.');
                 setLoading(false);
                 return;
             }
