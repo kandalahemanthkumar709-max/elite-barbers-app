@@ -44,6 +44,15 @@ bookingsCtrl.create = async (req, res) => {
             return res.status(404).json({ error: 'Service not found' });
         }
 
+        // PRE-CHECK: If online payment, ensure keys are configured BEFORE saving
+        if (paymentMethod === 'online') {
+            if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+                return res.status(400).json({ 
+                    error: 'Online payments are currently unavailable (Key Configuration Error). Please notify the shop owner.' 
+                });
+            }
+        }
+
         const booking = new Booking({
             customerId: req.user.id,
             barberId,
