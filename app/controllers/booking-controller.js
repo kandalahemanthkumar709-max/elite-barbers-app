@@ -188,7 +188,7 @@ bookingsCtrl.updateStatus = async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const booking = await Booking.findByIdAndUpdate(id, { status }, { new: true })
+        const booking = await Booking.findByIdAndUpdate(id, { status }, { returnDocument: 'after' })
             .populate('customerId barberId', 'username email phoneNumber')
             .populate('serviceId', 'name');
 

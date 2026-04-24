@@ -69,7 +69,7 @@ paymentsCtrl.verifyPayment = async (req, res) => {
                 status: 'confirmed',
                 paymentStatus: 'paid',
                 paymentId: razorpay_payment_id
-            }, { new: true }).populate('customerId barberId').populate('serviceId');
+            }, { returnDocument: 'after' }).populate('customerId barberId').populate('serviceId');
 
             const { sendWhatsAppMessage } = require('../utils/whatsapp');
             if (updatedBooking?.customerId?.phoneNumber) {
