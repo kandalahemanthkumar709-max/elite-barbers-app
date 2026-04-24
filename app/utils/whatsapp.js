@@ -63,29 +63,42 @@ let lastLoggedQR = null;
     });
 };
 
-const sendWhatsAppMessage = async (number, data) => {
-    if (status !== 'READY' || !sock) {
-        console.log('❌ Cannot send message: WhatsApp not ready');
-        return;
-    }
-
+const sendWhatsAppMessage = async (number, bookingDetails) => {
     try {
-        // Format number: remove + and add @s.whatsapp.net
-        const formattedNumber = number.replace(/\D/g, '') + '@s.whatsapp.net';
-        
-        const message = `*ELITE BARBERS - BOOKING CONFIRMED* ✂️\n\n` +
-            `Hello *${data.customerName}*,\n` +
-            `Your appointment is confirmed!\n\n` +
-            `🔹 *Service:* ${data.serviceName}\n` +
-            `🔹 *Barber:* ${data.barberName}\n` +
-            `🔹 *Date:* ${new Date(data.bookingDate).toLocaleDateString()}\n` +
-            `🔹 *Price:* ₹${data.price}\n\n` +
-            `See you soon at the shop! 💈`;
+        if (!sock || status !== 'READY') {
+            console.log("❌ WHATSAPP NOT READY: Message aborted.");
+            return;
+        }
 
-        await sock.sendMessage(formattedNumber, { text: message });
-        console.log(`✅ WhatsApp sent to ${number}`);
+        // Clean the number: Remove all non-digits
+        let cleanNumber = number.toString().replace(/\D/g, ''); 
+        
+        // If it's a 10-digit number, assume it's India and add 91
+        if (cleanNumber.length === 10) {
+            cleanNumber = '91' + cleanNumber;
+        }
+
+        const jid = `${cleanNumber}@s.whatsapp.net`;
+        const { customerName, serviceName, barberName, bookingDate, price } = bookingDetails;
+        
+        const dateStr = new Date(bookingDate).toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+            timeZone: 'Asia/Kolkata'
+        });
+
+        const message = `*ELITE BARBERS* 💈\n\n` +
+                        `Hello *${customerName}*! Your grooming session is confirmed. ✨\n\n` +
+                        `✂️ *Service:* ${serviceName}\n` +
+                        `👤 *Barber:* ${barberName}\n` +
+                        `📅 *Time:* ${dateStr}\n` +
+                        `💰 *Total:* ₹${price}\n\n` +
+                        `See you soon! Stay sharp! 🤴🏾🤘🏻`;
+
+        await sock.sendMessage(jid, { text: message });
+        console.log(`✅ WHATSAPP SENT to ${cleanNumber}!`);
     } catch (err) {
-        console.error('❌ Error sending WhatsApp:', err);
+        console.error("❌ WHATSAPP ERROR:", err.message);
     }
 };
 
