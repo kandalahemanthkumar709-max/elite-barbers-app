@@ -114,19 +114,22 @@ bookingsCtrl.checkAvailability = async (req, res) => {
         const barbers = await User.find({ role: 'barber' });
         const totalBarbers = barbers.length;
 
-        // Find bookings for the date
-        const query = { bookingDate: { $gte: startOfDay, $lte: endOfDay } };
+        // Find bookings for the date - ONLY confirmed or completed
+        const query = { 
+            bookingDate: { $gte: startOfDay, $lte: endOfDay },
+            status: { $in: ['confirmed', 'completed'] } 
+        };
         if (barberId) query.barberId = barberId;
 
         const bookings = await Booking.find(query).select('bookingDate barberId');
 
-        // Logic: Return a map of time -> bookedCount or bookedBarbers
+        // Logic: Return a map of time -> bookedCount
         const availabilityMap = {};
         bookings.forEach(b => {
             const d = new Date(b.bookingDate);
-            // Timezone-safe time extraction
-            const hours = String(d.getHours()).padStart(2, '0');
-            const minutes = String(d.getMinutes()).padStart(2, '0');
+            // Use UTC hours/minutes to match the ISO strings from the frontend
+            const hours = String(d.getUTCHours()).padStart(2, '0');
+            const minutes = String(d.getUTCMinutes()).padStart(2, '0');
             const time = `${hours}:${minutes}`;
 
             if (!availabilityMap[time]) availabilityMap[time] = [];
