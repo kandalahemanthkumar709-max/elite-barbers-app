@@ -28,7 +28,6 @@ const initializeWhatsApp = async () => {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
         },
-        printQRInTerminal: true,
         version,
         logger: pino({ level: 'silent' }),
         browser: ["Elite Barbers", "Chrome", "1.0.0"],
@@ -36,13 +35,17 @@ const initializeWhatsApp = async () => {
 
     sock.ev.on('creds.update', saveCreds);
 
+let lastLoggedQR = null;
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect, qr } = update;
         
         if (qr && connection !== 'open' && status !== 'READY') {
-            lastQR = qr;
-            status = 'WAITING_FOR_SCAN';
-            console.log("✨ NEW LIGHTWEIGHT QR GENERATED!");
+            if (qr !== lastLoggedQR) {
+                lastQR = qr;
+                status = 'WAITING_FOR_SCAN';
+                console.log("✨ NEW LIGHTWEIGHT QR GENERATED (Waiting for scan...)");
+                lastLoggedQR = qr;
+            }
         }
 
         if (connection === 'close') {
