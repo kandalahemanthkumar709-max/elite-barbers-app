@@ -6,7 +6,8 @@ set -o errexit
 echo "Building frontend..."
 cd frontend
 npm install
-npm run build
+# Force Vite to see the environment variable during build
+VITE_RAZORPAY_KEY_ID=$VITE_RAZORPAY_KEY_ID npm run build
 cd ..
 
 # Install backend dependencies
