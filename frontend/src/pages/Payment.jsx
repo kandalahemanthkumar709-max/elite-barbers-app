@@ -69,8 +69,16 @@ const Payment = () => {
 
             // 4. Open Razorpay Modal
             const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+            
+            if (!razorpayKey || razorpayKey === 'undefined') {
+                setError('Payment configuration is missing (VITE_RAZORPAY_KEY_ID). Please ensure you have Redeployed with Clear Cache.');
+                setLoading(false);
+                return;
+            }
+
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
+                key: razorpayKey, 
                 amount: order.amount,
                 currency: order.currency,
                 name: "Elite Barbers",
