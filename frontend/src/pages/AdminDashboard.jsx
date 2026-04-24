@@ -53,10 +53,10 @@ const AdminDashboard = () => {
                 {STATS.map(s => <StatCard key={s.label} {...s} />)}
             </div>
 
-            {/* Content: Date Picker + Table */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: '2rem' }}>
+            {/* Content: Date Picker + Table (Responsive Flex) */}
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                 {/* Date Picker */}
-                <div className="card" style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
+                <div className="card" style={{ flex: '1 1 300px', height: 'fit-content' }}>
                     <h4 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Calendar size={18} /> Select Date
                     </h4>
@@ -72,7 +72,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Bookings Table */}
-                <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+                <div className="card" style={{ flex: '3 1 400px', padding: '0', overflow: 'hidden' }}>
                     <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
                         <h3>Appointments ({filteredBookings.length})</h3>
                     </div>

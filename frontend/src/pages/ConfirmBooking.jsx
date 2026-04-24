@@ -194,10 +194,10 @@ const ConfirmBooking = () => {
                     ))}
                 </div>
 
-                {/* Time Slot Grid (3 columns) */}
+                {/* Time Slot Grid (Responsive) */}
                 <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: 'repeat(3, 1fr)', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
                     gap: '0.8rem',
                     marginBottom: '2.5rem'
                 }}>

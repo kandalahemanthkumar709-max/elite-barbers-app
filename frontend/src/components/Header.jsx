@@ -37,7 +37,7 @@ const Header = () => {
                     Elite Barbers
                 </Link>
 
-                <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                <nav className="nav-links" style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     {/* ── GUEST ─────────────────────────────── */}
                     {!token && (
                         <>
