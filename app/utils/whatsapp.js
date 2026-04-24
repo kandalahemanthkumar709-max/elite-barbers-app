@@ -79,7 +79,7 @@ const sendWhatsAppMessage = async (number, bookingDetails) => {
         }
 
         const jid = `${cleanNumber}@s.whatsapp.net`;
-        const { customerName, serviceName, barberName, bookingDate, price } = bookingDetails;
+        const { customerName, serviceName, barberName, bookingDate, price, isReminder } = bookingDetails;
         
         const dateStr = new Date(bookingDate).toLocaleString('en-IN', {
             dateStyle: 'medium',
@@ -87,13 +87,23 @@ const sendWhatsAppMessage = async (number, bookingDetails) => {
             timeZone: 'Asia/Kolkata'
         });
 
-        const message = `*ELITE BARBERS* 💈\n\n` +
-                        `Hello *${customerName}*! Your grooming session is confirmed. ✨\n\n` +
-                        `✂️ *Service:* ${serviceName}\n` +
-                        `👤 *Barber:* ${barberName}\n` +
-                        `📅 *Time:* ${dateStr}\n` +
-                        `💰 *Total:* ₹${price}\n\n` +
-                        `See you soon! Stay sharp! 🤴🏾🤘🏻`;
+        let message;
+        if (isReminder) {
+            message = `*ELITE BARBERS REMINDER* 🛎️\n\n` +
+                      `Hello *${customerName}*! Just a friendly heads-up that your session starts in *15 minutes*! ⏱️\n\n` +
+                      `✂️ *Service:* ${serviceName}\n` +
+                      `👤 *Barber:* ${barberName}\n` +
+                      `🕒 *Start Time:* ${dateStr.split(',')[1]} (Today)\n\n` +
+                      `The chair is waiting for you! See you soon! 🤴🏾🤘🏻`;
+        } else {
+            message = `*ELITE BARBERS* 💈\n\n` +
+                      `Hello *${customerName}*! Your grooming session is confirmed. ✨\n\n` +
+                      `✂️ *Service:* ${serviceName}\n` +
+                      `👤 *Barber:* ${barberName}\n` +
+                      `📅 *Time:* ${dateStr}\n` +
+                      `💰 *Total:* ₹${price}\n\n` +
+                      `See you soon! Stay sharp! 🤴🏾🤘🏻`;
+        }
 
         await sock.sendMessage(jid, { text: message });
         console.log(`✅ WHATSAPP SENT to ${cleanNumber}!`);

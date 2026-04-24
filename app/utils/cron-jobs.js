@@ -7,23 +7,18 @@ const { sendWhatsAppMessage } = require('./whatsapp');
 const notifiedBookings = new Set();
 
 const initializeCronJobs = () => {
-    console.log("⏱️ Initializing Background Cron Task (10-Min Reminders)");
+    console.log("⏱️ Initializing Background Cron Task (15-Min Reminders)");
 
     // Run this check every single minute (* * * * *)
     cron.schedule('* * * * *', async () => {
         try {
             const now = new Date();
-            // Calculate precisely 10 minutes from exactly now
-            const tenMinutesFromNow = new Date(now.getTime() + 10 * 60000);
-            
-            // To be safe against minor delays OR immediate "walk-in" bookings, 
-            // we look for ANY upcoming appointment occurring between RIGHT NOW and exactly 15 minutes from now.
-            const startWindow = new Date(now.getTime() - 1 * 60000); // 1 minute in the past just to be safe
-            const endWindow = new Date(now.getTime() + 15 * 60000); // 15 mins into the future
+            const startWindow = new Date(now.getTime() + 14 * 60000); 
+            const endWindow = new Date(now.getTime() + 17 * 60000); 
 
             const upcomingBookings = await Booking.find({
                 bookingDate: { $gte: startWindow, $lt: endWindow },
-                status: { $in: ['confirmed', 'pending'] } 
+                status: 'confirmed' 
             }).populate('customerId').populate('barberId').populate('serviceId');
 
             for (const booking of upcomingBookings) {
@@ -33,7 +28,7 @@ const initializeCronJobs = () => {
                 }
 
                 if (booking.customerId?.phoneNumber) {
-                    console.log(`[CRON] Found upcoming booking for ${booking.customerId.username}. Sending 10-min reminder...`);
+                    console.log(`[CRON] Found upcoming booking for ${booking.customerId.username}. Sending 15-min reminder...`);
                     
                     const messageParams = {
                         customerName: booking.customerId.username,
