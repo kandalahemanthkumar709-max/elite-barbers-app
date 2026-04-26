@@ -28,7 +28,17 @@ const AdminLayout = ({ title, subtitle, actions, children }) => {
             </div>
 
             {/* Tab Navigation */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '3rem', borderBottom: '1px solid var(--border)', paddingBottom: '-1px' }}>
+            <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem', 
+                marginBottom: '3rem', 
+                borderBottom: '1px solid var(--border)', 
+                paddingBottom: '-1px',
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+            }}>
                 {NAV_ITEMS.map(item => {
                     const isActive = location.pathname === item.path;
                     return (
@@ -46,6 +56,7 @@ const AdminLayout = ({ title, subtitle, actions, children }) => {
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
                                 marginBottom: '-1px',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             {item.label}

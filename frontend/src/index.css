@@ -72,17 +72,18 @@ button {
   border-color: var(--accent);
 }
 
-input {
-  background: transparent;
+input, select, textarea {
+  background: #111;
   border: 1px solid var(--border);
   color: white;
   padding: 0.8rem;
   border-radius: 4px;
   width: 100%;
   margin-bottom: 1rem;
+  font-family: inherit;
 }
 
-input:focus {
+input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -92,10 +93,26 @@ input:focus {
   opacity: 0.6;
 }
 
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .container {
-    padding: 0 1rem;
+    padding: 0 1.2rem;
   }
   
   .card {
@@ -106,6 +123,10 @@ input:focus {
     font-size: 2rem !important;
   }
 
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
   .nav-links {
     gap: 1rem !important;
   }
@@ -113,11 +134,21 @@ input:focus {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 0.75rem;
+    padding: 0 1rem;
   }
   
   .btn-primary {
     width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  .card {
+    padding: 1.25rem;
   }
 }

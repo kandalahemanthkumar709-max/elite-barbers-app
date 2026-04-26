@@ -42,7 +42,7 @@ const Services = () => {
                 </div>
 
                 {/* Search Bar */}
-                <div style={{ position: 'relative', width: '100%', maxWidth: '350px' }}>
+                <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }} className="search-container">
                     <Search
                         size={18}
                         color="var(--text-secondary)"
@@ -67,6 +67,12 @@ const Services = () => {
                     />
                 </div>
             </div>
+
+            <style>{`
+                @media (min-width: 769px) {
+                    .search-container { max-width: 350px !important; }
+                }
+            `}</style>
 
             {/* Category Filter Bar */}
             <div style={{
